@@ -2,6 +2,7 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { ensureBillingAccount } from '@/lib/billing/service';
 
 export async function createProject(name: string, prompt: string) {
     const { userId, sessionClaims } = await auth();
@@ -19,6 +20,8 @@ export async function createProject(name: string, prompt: string) {
         email: (sessionClaims as any)?.email ?? 'user@vantage.ai',
         full_name: (sessionClaims as any)?.full_name ?? 'Vantage User',
     }, { onConflict: 'clerk_id' });
+
+    await ensureBillingAccount(userId);
 
     const { data, error } = await supabaseAdmin
         .from('projects')
@@ -46,6 +49,12 @@ export async function getProjects() {
         return [];
     }
     return data ?? [];
+}
+
+export async function getBillingOverview() {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+    return ensureBillingAccount(userId);
 }
 
 export async function getProjectData(id: string) {

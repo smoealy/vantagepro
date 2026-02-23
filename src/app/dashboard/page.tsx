@@ -87,6 +87,9 @@ export default function Dashboard() {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+                    <Link href="/billing" style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>
+                        Billing
+                    </Link>
                     <div style={{ position: 'relative' }}>
                         <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)' }} />
                         <input
