@@ -10,35 +10,118 @@ export default function SmartPreview({ files, projectName, projectId }: { files:
     const sandpackFiles = useMemo(() => {
         const formatted: Record<string, string> = {};
 
-        let hasAppTsx = false;
-
-        Object.entries(files).forEach(([path, data]) => {
-            // Strip any src/app/ or similar Next.js-isms to flatten for Sandpack
+        function normalizePath(path: string) {
             let sandpackPath = path.replace(/^src\/app\//, '').replace(/^src\//, '/');
             if (!sandpackPath.startsWith('/')) {
                 sandpackPath = `/${sandpackPath}`;
             }
+            return sandpackPath === '/page.tsx' ? '/App.tsx' : sandpackPath;
+        }
 
-            // If they wrote page.tsx, Map it to App.tsx
-            if (sandpackPath === '/page.tsx') {
-                sandpackPath = '/App.tsx';
+        function dirname(path: string) {
+            const parts = path.split('/').filter(Boolean);
+            parts.pop();
+            return `/${parts.join('/')}`;
+        }
+
+        function relativePath(fromDir: string, toPath: string) {
+            const from = fromDir.split('/').filter(Boolean);
+            const to = toPath.split('/').filter(Boolean);
+            while (from.length && to.length && from[0] === to[0]) {
+                from.shift();
+                to.shift();
             }
+            const ups = from.map(() => '..');
+            const joined = [...ups, ...to].join('/');
+            return joined.startsWith('.') ? joined : `./${joined}`;
+        }
 
+        const rawFiles: Record<string, string> = {};
+        Object.entries(files).forEach(([path, data]) => {
+            rawFiles[normalizePath(path)] = data.content;
+        });
+
+        const allPaths = new Set(Object.keys(rawFiles));
+
+        function findAliasTarget(aliasPath: string): string | null {
+            const candidates = [
+                aliasPath,
+                `${aliasPath}.tsx`,
+                `${aliasPath}.ts`,
+                `${aliasPath}.jsx`,
+                `${aliasPath}.js`,
+                `${aliasPath}.css`,
+                `${aliasPath}/index.tsx`,
+                `${aliasPath}/index.ts`,
+                `${aliasPath}/index.jsx`,
+                `${aliasPath}/index.js`,
+            ];
+            if (aliasPath.startsWith('/app/')) {
+                const trimmed = aliasPath.replace(/^\/app\//, '/');
+                candidates.push(
+                    trimmed,
+                    `${trimmed}.tsx`,
+                    `${trimmed}.ts`,
+                    `${trimmed}.jsx`,
+                    `${trimmed}.js`,
+                    `${trimmed}.css`,
+                );
+            }
+            for (const candidate of candidates) {
+                if (allPaths.has(candidate)) return candidate;
+            }
+            return null;
+        }
+
+        function rewriteImports(content: string, currentPath: string) {
+            const currentDir = dirname(currentPath);
+
+            const rewriteSpecifier = (specifier: string) => {
+                if (specifier.startsWith('@/')) {
+                    const aliasPath = `/${specifier.slice(2)}`;
+                    const target = findAliasTarget(aliasPath);
+                    if (target) {
+                        return relativePath(currentDir, target);
+                    }
+                    return specifier;
+                }
+                if (specifier === 'next/link') {
+                    return relativePath(currentDir, '/__mocks__/next-link.tsx');
+                }
+                if (specifier === 'next/image') {
+                    return relativePath(currentDir, '/__mocks__/next-image.tsx');
+                }
+                if (specifier === 'next/navigation' || specifier === 'next/router') {
+                    return relativePath(currentDir, '/__mocks__/next-navigation.ts');
+                }
+                return specifier;
+            };
+
+            let rewritten = content;
+            rewritten = rewritten.replace(
+                /(from\s+['"])([^'"]+)(['"])/g,
+                (_m, p1, specifier, p3) => `${p1}${rewriteSpecifier(specifier)}${p3}`,
+            );
+            rewritten = rewritten.replace(
+                /(import\s+['"])([^'"]+)(['"])/g,
+                (_m, p1, specifier, p3) => `${p1}${rewriteSpecifier(specifier)}${p3}`,
+            );
+            return rewritten;
+        }
+
+        let hasAppTsx = false;
+        Object.entries(rawFiles).forEach(([sandpackPath, rawContent]) => {
+            let content = rewriteImports(rawContent, sandpackPath);
             if (sandpackPath === '/App.tsx') {
                 hasAppTsx = true;
-                // Add a simple export default wrapped App if they didn't export default
-                let content = data.content;
                 if (!content.includes('export default')) {
-                    // Try to find the main component and export it
                     const match = content.match(/export (?:const|function) ([A-Z][a-zA-Z0-9_]*)/);
                     if (match) {
                         content += `\n\nexport default ${match[1]};`;
                     }
                 }
-                formatted[sandpackPath] = content;
-            } else {
-                formatted[sandpackPath] = data.content;
             }
+            formatted[sandpackPath] = content;
         });
 
         // Always ensure we have an App.tsx if they didn't write one natively
@@ -81,6 +164,29 @@ export default function SmartPreview({ files, projectName, projectId }: { files:
     <div id="root"></div>
   </body>
 </html>`;
+
+        // Mocks for common Next.js imports so preview keeps rendering in react-ts template.
+        formatted['/__mocks__/next-link.tsx'] = `
+import React from 'react';
+export default function Link({ href, children, ...props }: any) {
+  return <a href={href} {...props}>{children}</a>;
+}
+        `;
+        formatted['/__mocks__/next-image.tsx'] = `
+import React from 'react';
+export default function Image({ src, alt, ...props }: any) {
+  return <img src={typeof src === 'string' ? src : ''} alt={alt ?? ''} {...props} />;
+}
+        `;
+        formatted['/__mocks__/next-navigation.ts'] = `
+export function useRouter() {
+  return { push() {}, replace() {}, back() {}, prefetch: async () => {} };
+}
+export function useParams() { return {}; }
+export function useSearchParams() {
+  return { get() { return null; }, toString() { return ''; } };
+}
+        `;
 
         // Supply a generic styles.css just in case
         formatted['/styles.css'] = `

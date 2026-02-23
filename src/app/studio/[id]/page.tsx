@@ -62,13 +62,13 @@ export default function StudioWorkspace() {
     const [projectName, setProjectName] = useState('');
 
     // Swarm state
-    const [thoughts, setThoughts] = useState<Array<{ agent: string; thought: string; type: string; key: string }>>([]);
+    const [thoughts, setThoughts] = useState<Array<{ agent: string; thought: string; type: string; key: string; createdAt: number }>>([]);
     const [files, setFiles] = useState<Record<string, { path: string; content: string; description?: string }>>({});
 
     const hasAppended = useRef(false);
     const activityEndRef = useRef<HTMLDivElement>(null);
 
-    const { messages, setMessages, isLoading, append } = useChat({
+    const { messages, isLoading, append } = useChat({
         api: '/api/swarm',
         body: { projectId: id },
     });
@@ -88,11 +88,12 @@ export default function StudioWorkspace() {
             if (data.files.length > 0) setActiveFile(data.files[0].path);
 
             // Map thoughts (historical messages)
-            const initialThoughts: typeof thoughts = data.messages.map((m: any) => ({
+            const initialThoughts: typeof thoughts = data.messages.map((m: any, idx: number) => ({
                 agent: m.role,
                 thought: m.content,
                 type: 'archived',
-                key: m.id
+                key: m.id,
+                createdAt: m.created_at ? new Date(m.created_at).getTime() : Date.now() + idx,
             }));
             setThoughts(initialThoughts);
 
@@ -117,6 +118,7 @@ export default function StudioWorkspace() {
                         thought: inv.args.thought,
                         type: inv.args.type ?? 'planning',
                         key: inv.toolCallId ?? `${msg.id}-${liveThoughts.length}`,
+                        createdAt: msg.createdAt ? new Date(msg.createdAt).getTime() : Date.now() + liveThoughts.length,
                     });
                 }
                 if (inv.toolName === 'writeFile' && inv.args?.path && inv.args?.content) {
@@ -143,12 +145,42 @@ export default function StudioWorkspace() {
         }
     }, [messages]);
 
+    const latestThought = useMemo(() => {
+        if (thoughts.length === 0) return null;
+        return [...thoughts].sort((a, b) => a.createdAt - b.createdAt).at(-1) ?? null;
+    }, [thoughts]);
+
+    const activityItems = useMemo(() => {
+        const userItems = messages
+            .filter((m) => m.role === 'user')
+            .map((m, idx) => ({
+                kind: 'user' as const,
+                key: m.id ?? `user-${idx}`,
+                content: m.content,
+                createdAt: m.createdAt ? new Date(m.createdAt).getTime() : Date.now() + idx,
+            }));
+
+        const thoughtItems = thoughts.map((t) => ({
+            kind: 'thought' as const,
+            ...t,
+        }));
+
+        return [...userItems, ...thoughtItems].sort((a, b) => {
+            if (a.createdAt === b.createdAt) {
+                // If timestamps collide, keep user prompts before agent responses.
+                if (a.kind === b.kind) return 0;
+                return a.kind === 'user' ? -1 : 1;
+            }
+            return a.createdAt - b.createdAt;
+        });
+    }, [messages, thoughts]);
+
     // ── Auto-scroll ───────────────────────────────────────────────────────────
     useEffect(() => {
         if (activityEndRef.current) {
             activityEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-    }, [thoughts, messages]);
+    }, [activityItems, messages]);
 
     // ── Auto-send initial prompt ──────────────────────────────────────────────
     useEffect(() => {
@@ -346,13 +378,32 @@ export default function StudioWorkspace() {
                                 >
                                     {/* Swarm State Feed */}
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                        {/* Thoughts with Avatars */}
-                                        {thoughts.map((t, idx) => {
-                                            const cfg = AGENTS[t.agent] ?? AGENTS.Manager;
-                                            const isQuestion = t.type === 'question';
+                                        {activityItems.map((item) => {
+                                            if (item.kind === 'user') {
+                                                return (
+                                                    <div key={item.key} style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
+                                                        <div style={{
+                                                            width: 32, height: 32, borderRadius: 10, flexShrink: 0,
+                                                            background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                                        }}>👤</div>
+                                                        <div style={{ flex: 1 }}>
+                                                            <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>USER</div>
+                                                            <div style={{
+                                                                background: 'rgba(255,255,255,0.03)', padding: '12px 16px', borderRadius: '0 16px 16px 16px',
+                                                                fontSize: 13, color: '#e2e8f0', border: '1px solid rgba(255,255,255,0.05)', lineHeight: 1.6
+                                                            }}>
+                                                                {item.content}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+
+                                            const cfg = AGENTS[item.agent] ?? AGENTS.Manager;
+                                            const isQuestion = item.type === 'question';
                                             return (
                                                 <motion.div
-                                                    key={t.key}
+                                                    key={item.key}
                                                     initial={{ opacity: 0, scale: 0.95 }}
                                                     animate={{ opacity: 1, scale: 1 }}
                                                     style={{ display: 'flex', gap: 12, marginBottom: 4 }}
@@ -368,40 +419,21 @@ export default function StudioWorkspace() {
                                                     <div style={{ flex: 1 }}>
                                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                                                             <span style={{ fontSize: 11, fontWeight: 800, color: isQuestion ? '#ef4444' : cfg.color, letterSpacing: '0.05em' }}>
-                                                                {t.agent.toUpperCase()}
+                                                                {item.agent.toUpperCase()}
                                                             </span>
-                                                            <span style={{ fontSize: 9, color: isQuestion ? '#f87171' : 'rgba(255,255,255,0.2)', fontWeight: 600 }}>{t.type.toUpperCase()}</span>
+                                                            <span style={{ fontSize: 9, color: isQuestion ? '#f87171' : 'rgba(255,255,255,0.2)', fontWeight: 600 }}>{item.type.toUpperCase()}</span>
                                                         </div>
                                                         <div style={{
                                                             background: isQuestion ? 'rgba(239,68,68,0.05)' : cfg.bg, padding: '12px 16px', borderRadius: '0 16px 16px 16px',
                                                             fontSize: 13, color: isQuestion ? '#fca5a5' : '#e2e8f0', border: `1px solid ${isQuestion ? 'rgba(239,68,68,0.2)' : cfg.border}`, lineHeight: 1.6,
                                                             fontWeight: isQuestion ? 600 : 400
                                                         }}>
-                                                            {t.thought}
+                                                            {item.thought}
                                                         </div>
                                                     </div>
                                                 </motion.div>
                                             );
                                         })}
-
-                                        {/* User messages (keep these near the bottom as latest interaction context) */}
-                                        {messages.filter(m => m.role === 'user').map(m => (
-                                            <div key={m.id} style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
-                                                <div style={{
-                                                    width: 32, height: 32, borderRadius: 10, flexShrink: 0,
-                                                    background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                                }}>👤</div>
-                                                <div style={{ flex: 1 }}>
-                                                    <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>USER</div>
-                                                    <div style={{
-                                                        background: 'rgba(255,255,255,0.03)', padding: '12px 16px', borderRadius: '0 16px 16px 16px',
-                                                        fontSize: 13, color: '#e2e8f0', border: '1px solid rgba(255,255,255,0.05)', lineHeight: 1.6
-                                                    }}>
-                                                        {m.content}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
 
                                         {/* Streaming text */}
                                         {streamingText && (
@@ -484,10 +516,10 @@ export default function StudioWorkspace() {
                                 value={chatInput}
                                 onChange={e => setChatInput(e.target.value)}
                                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-                                placeholder={thoughts.at(-1)?.type === 'question' && !isLoading ? 'The Swarm has a question for you...' : isLoading ? 'Swarm is thinking...' : 'Ask for a feature or modification...'}
+                                placeholder={latestThought?.type === 'question' && !isLoading ? 'The Swarm has a question for you...' : isLoading ? 'Swarm is thinking...' : 'Ask for a feature or modification...'}
                                 disabled={isLoading}
                                 style={{
-                                    width: '100%', background: thoughts.at(-1)?.type === 'question' && !isLoading ? 'rgba(239, 68, 68, 0.05)' : 'rgba(255,255,255,0.03)', border: `1px solid ${thoughts.at(-1)?.type === 'question' && !isLoading ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255,255,255,0.08)'}`,
+                                    width: '100%', background: latestThought?.type === 'question' && !isLoading ? 'rgba(239, 68, 68, 0.05)' : 'rgba(255,255,255,0.03)', border: `1px solid ${latestThought?.type === 'question' && !isLoading ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255,255,255,0.08)'}`,
                                     borderRadius: 16, padding: '12px 14px', paddingRight: 50,
                                     color: '#fff', fontSize: 13, resize: 'none', outline: 'none', fontFamily: 'inherit',
                                     minHeight: 100, transition: 'all 0.3s', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)'
