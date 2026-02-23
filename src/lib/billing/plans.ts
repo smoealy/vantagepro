@@ -1,7 +1,8 @@
 export type BillingInterval = 'monthly' | 'yearly';
+export type PlanId = 'free' | 'pro' | 'team' | 'enterprise';
 
 export type Plan = {
-  id: 'free' | 'pro' | 'team' | 'enterprise';
+  id: PlanId;
   name: string;
   description: string;
   monthlyPriceUsd: number;
@@ -56,4 +57,21 @@ export const plans: Plan[] = [
 
 export function getPlanPrice(plan: Plan, interval: BillingInterval): number {
   return interval === 'yearly' ? plan.yearlyPriceUsd : plan.monthlyPriceUsd;
+}
+
+export function getStripePriceId(planId: PlanId, interval: BillingInterval): string | null {
+  const map: Record<PlanId, { monthly?: string; yearly?: string }> = {
+    free: {},
+    pro: {
+      monthly: process.env.STRIPE_PRICE_PRO_MONTHLY,
+      yearly: process.env.STRIPE_PRICE_PRO_YEARLY,
+    },
+    team: {
+      monthly: process.env.STRIPE_PRICE_TEAM_MONTHLY,
+      yearly: process.env.STRIPE_PRICE_TEAM_YEARLY,
+    },
+    enterprise: {},
+  };
+
+  return map[planId][interval] ?? null;
 }

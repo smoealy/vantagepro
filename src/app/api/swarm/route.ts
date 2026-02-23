@@ -3,6 +3,7 @@ import { streamText } from 'ai';
 import { z } from 'zod';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { auth } from '@clerk/nextjs/server';
+import { consumeCredits, ensureBillingAccount } from '@/lib/billing/service';
 
 export const runtime = 'nodejs';
 
@@ -16,6 +17,7 @@ export async function POST(req: Request) {
     }
 
     const supabaseAdmin = getSupabaseAdmin();
+    await ensureBillingAccount(userId);
 
     const body = await req.json();
     const messages = Array.isArray(body?.messages) ? body.messages : [];
@@ -40,6 +42,27 @@ export async function POST(req: Request) {
             status: 404,
             headers: { 'Content-Type': 'application/json' },
         });
+    }
+
+    const creditCheck = await consumeCredits({
+        userId,
+        amount: 1,
+        reason: 'swarm_generation',
+        projectId,
+    });
+
+    if (!creditCheck.ok) {
+        return new Response(
+            JSON.stringify({
+                error: 'Insufficient credits',
+                remainingCredits: creditCheck.remaining,
+                upgradePath: '/billing',
+            }),
+            {
+                status: 402,
+                headers: { 'Content-Type': 'application/json' },
+            },
+        );
     }
 
     const result = await streamText({
