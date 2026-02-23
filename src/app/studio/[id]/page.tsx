@@ -346,25 +346,6 @@ export default function StudioWorkspace() {
                                 >
                                     {/* Swarm State Feed */}
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                        {/* Activity Log Items */}
-                                        {messages.filter(m => m.role === 'user').map(m => (
-                                            <div key={m.id} style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
-                                                <div style={{
-                                                    width: 32, height: 32, borderRadius: 10, flexShrink: 0,
-                                                    background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                                }}>👤</div>
-                                                <div style={{ flex: 1 }}>
-                                                    <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>USER</div>
-                                                    <div style={{
-                                                        background: 'rgba(255,255,255,0.03)', padding: '12px 16px', borderRadius: '0 16px 16px 16px',
-                                                        fontSize: 13, color: '#e2e8f0', border: '1px solid rgba(255,255,255,0.05)', lineHeight: 1.6
-                                                    }}>
-                                                        {m.content}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-
                                         {/* Thoughts with Avatars */}
                                         {thoughts.map((t, idx) => {
                                             const cfg = AGENTS[t.agent] ?? AGENTS.Manager;
@@ -402,6 +383,25 @@ export default function StudioWorkspace() {
                                                 </motion.div>
                                             );
                                         })}
+
+                                        {/* User messages (keep these near the bottom as latest interaction context) */}
+                                        {messages.filter(m => m.role === 'user').map(m => (
+                                            <div key={m.id} style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
+                                                <div style={{
+                                                    width: 32, height: 32, borderRadius: 10, flexShrink: 0,
+                                                    background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                                }}>👤</div>
+                                                <div style={{ flex: 1 }}>
+                                                    <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>USER</div>
+                                                    <div style={{
+                                                        background: 'rgba(255,255,255,0.03)', padding: '12px 16px', borderRadius: '0 16px 16px 16px',
+                                                        fontSize: 13, color: '#e2e8f0', border: '1px solid rgba(255,255,255,0.05)', lineHeight: 1.6
+                                                    }}>
+                                                        {m.content}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
 
                                         {/* Streaming text */}
                                         {streamingText && (

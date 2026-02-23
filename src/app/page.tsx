@@ -51,7 +51,7 @@ export default function LandingPage() {
                 </h1>
 
                 <p className="max-w-2xl text-xl text-white/40 mb-12 leading-relaxed font-medium">
-                    The world's most advanced multi-agent development studio.
+                    The world&apos;s most advanced multi-agent development studio.
                     Deploy enterprise-grade apps in minutes with our persistent,
                     streaming swarm intelligence.
                 </p>
