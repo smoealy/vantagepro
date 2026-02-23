@@ -2,11 +2,43 @@ import { openai } from '@ai-sdk/openai';
 import { streamText } from 'ai';
 import { z } from 'zod';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { auth } from '@clerk/nextjs/server';
 
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
-    const { messages, projectId } = await req.json();
+    const { userId } = await auth();
+    if (!userId) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+            status: 401,
+            headers: { 'Content-Type': 'application/json' },
+        });
+    }
+
+    const body = await req.json();
+    const messages = Array.isArray(body?.messages) ? body.messages : [];
+    const projectId = typeof body?.projectId === 'string' ? body.projectId : '';
+
+    if (!projectId) {
+        return new Response(JSON.stringify({ error: 'Missing projectId' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+        });
+    }
+
+    const { data: project } = await supabaseAdmin
+        .from('projects')
+        .select('id')
+        .eq('id', projectId)
+        .eq('user_id', userId)
+        .single();
+
+    if (!project) {
+        return new Response(JSON.stringify({ error: 'Project not found' }), {
+            status: 404,
+            headers: { 'Content-Type': 'application/json' },
+        });
+    }
 
     const result = await streamText({
         model: openai('gpt-4o'),
@@ -19,15 +51,17 @@ You orchestrate three specialized agents:
 
 Your workflow for EVERY request:
 Phase 1: Discovery (Crucial for uniqueness)
-- **Manager Thought**: Call logSwarmThought. ANALYZE the user's prompt. Is it a generic request like "make a dashboard" or "build a fitness app"? 
-- If YES (generic): You MUST call logSwarmThought with type "question" asking the user a single, highly specific question to gather details (e.g., target audience, unique features, aesthetic vibe). DO NOT PROCEED TO PHASE 2. Stop executing here.
-- If NO (detailed): Proceed to Phase 2.
+- **Manager Thought**: Call logSwarmThought. ANALYZE the user's prompt.
+- If this is the FIRST generation request and it is generic (e.g., "make a dashboard" or "build a fitness app"), ask ONE specific clarifying question via logSwarmThought with type "question" and STOP.
+- If files likely already exist and the user is asking for an edit/refactor/fix (e.g., "move this", "change color", "make header sticky", "update layout"), DO NOT ask a clarifying question first. Proceed directly to implementation and modify files.
+- If request is detailed: Proceed to Phase 2.
 
 Phase 2: Execution (Only if prompt is detailed)
 1. **Architect Thought**: Call logSwarmThought. Design a MODULAR file structure. Don't put everything in App.tsx. Suggested components: Header.tsx, Hero.tsx, Features.tsx, Pricing.tsx, Dashboard.tsx.
 2. **Designer Thought**: Call logSwarmThought. Define the visual aesthetic (Luxurious, Technical, Playful, etc.).
 3. **Execution**: Call writeFile for EACH file. BE THOROUGH. Write FULL, production-ready React code.
 4. **Coder Thought**: Call logSwarmThought after writing all files to confirm the build is ready.
+5. For follow-up iterations, prefer updating only the files that need changes while keeping existing structure intact.
 
 Rules for Code Execution (Sandpack Environment):
 - YOU MUST write an \`App.tsx\` file as the main entry point. This is critical. Do NOT write \`page.tsx\`.

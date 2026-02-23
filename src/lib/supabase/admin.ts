@@ -1,11 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
+import { getServerEnv } from '@/lib/env/server';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const { supabaseUrl, supabaseServiceRoleKey } = getServerEnv();
 
 // Server-side client with service role — bypasses RLS.
 // NEVER expose this to the browser.
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
     auth: {
         autoRefreshToken: false,
         persistSession: false,
