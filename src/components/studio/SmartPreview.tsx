@@ -9,6 +9,7 @@ export default function SmartPreview({ files, projectName, projectId }: { files:
     // Convert Vantage's file structure to Sandpack's virtual file system
     const sandpackFiles = useMemo(() => {
         const formatted: Record<string, string> = {};
+        const externalImports = new Set<string>();
 
         function normalizePath(path: string) {
             let sandpackPath = path.replace(/^src\/app\//, '').replace(/^src\//, '/');
@@ -77,6 +78,14 @@ export default function SmartPreview({ files, projectName, projectId }: { files:
             const currentDir = dirname(currentPath);
 
             const rewriteSpecifier = (specifier: string) => {
+                if (!specifier.startsWith('.') && !specifier.startsWith('/')) {
+                    const pkgName = specifier.startsWith('@')
+                        ? specifier.split('/').slice(0, 2).join('/')
+                        : specifier.split('/')[0];
+                    if (!pkgName.startsWith('next') && pkgName !== 'react' && pkgName !== 'react-dom') {
+                        externalImports.add(pkgName);
+                    }
+                }
                 if (specifier.startsWith('@/')) {
                     const aliasPath = `/${specifier.slice(2)}`;
                     const target = findAliasTarget(aliasPath);
@@ -196,6 +205,48 @@ body {
 }
         `;
 
+        const presetVersions: Record<string, string> = {
+            'lucide-react': 'latest',
+            'framer-motion': 'latest',
+            'clsx': 'latest',
+            'tailwind-merge': 'latest',
+            'date-fns': 'latest',
+            'dayjs': 'latest',
+            'axios': 'latest',
+            'zustand': 'latest',
+            'recharts': 'latest',
+            'chart.js': 'latest',
+            'react-chartjs-2': 'latest',
+            'react-hook-form': 'latest',
+            'zod': 'latest',
+            '@tanstack/react-query': 'latest',
+            '@headlessui/react': 'latest',
+            '@heroicons/react': 'latest',
+            '@radix-ui/react-dialog': 'latest',
+            '@radix-ui/react-dropdown-menu': 'latest',
+            '@radix-ui/react-tabs': 'latest',
+            '@radix-ui/react-popover': 'latest',
+            '@radix-ui/react-tooltip': 'latest',
+            '@radix-ui/react-select': 'latest',
+            '@radix-ui/react-toast': 'latest',
+        };
+
+        const dynamicDependencies: Record<string, string> = {
+            react: '^18.3.1',
+            'react-dom': '^18.3.1',
+        };
+
+        externalImports.forEach((pkg) => {
+            dynamicDependencies[pkg] = presetVersions[pkg] ?? 'latest';
+        });
+
+        formatted['/package.json'] = JSON.stringify({
+            name: 'vantage-preview',
+            private: true,
+            version: '0.0.0',
+            dependencies: dynamicDependencies,
+        }, null, 2);
+
         return formatted;
     }, [files]);
 
@@ -221,10 +272,8 @@ body {
                 files={sandpackFiles}
                 customSetup={{
                     dependencies: {
-                        "lucide-react": "latest",
-                        "framer-motion": "latest",
-                        "clsx": "latest",
-                        "tailwind-merge": "latest"
+                        "react": "^18.3.1",
+                        "react-dom": "^18.3.1",
                     }
                 }}
                 options={{
