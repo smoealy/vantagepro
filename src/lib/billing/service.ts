@@ -21,6 +21,27 @@ if (!FREE_PLAN) {
 
 const DEFAULT_FREE_CREDITS = FREE_PLAN.includedCredits;
 
+function isBillingSchemaMissing(error: any): boolean {
+    const message = String(error?.message ?? '').toLowerCase();
+    return (
+        message.includes("could not find the table 'public.billing_accounts'") ||
+        message.includes('relation "public.billing_accounts" does not exist') ||
+        message.includes('schema cache')
+    );
+}
+
+function fallbackAccount(userId: string): BillingAccount {
+    return {
+        id: `fallback-${userId}`,
+        user_id: userId,
+        plan_id: 'free',
+        credit_balance: Number.MAX_SAFE_INTEGER,
+        stripe_customer_id: null,
+        stripe_subscription_id: null,
+        subscription_status: 'billing_schema_missing',
+    };
+}
+
 export async function getBillingAccount(userId: string): Promise<BillingAccount | null> {
     const supabaseAdmin = getSupabaseAdmin();
     const { data, error } = await supabaseAdmin
@@ -28,6 +49,11 @@ export async function getBillingAccount(userId: string): Promise<BillingAccount 
         .select('*')
         .eq('user_id', userId)
         .single();
+
+    if (isBillingSchemaMissing(error)) {
+        console.warn('Billing schema is missing. Falling back to no-limit mode until migration is applied.');
+        return fallbackAccount(userId);
+    }
 
     if (error || !data) return null;
     return data as BillingAccount;
@@ -49,6 +75,11 @@ export async function ensureBillingAccount(userId: string): Promise<BillingAccou
         .select('*')
         .single();
 
+    if (isBillingSchemaMissing(error)) {
+        console.warn('Billing schema is missing. Falling back to no-limit mode until migration is applied.');
+        return fallbackAccount(userId);
+    }
+
     if (error || !data) {
         throw new Error(error?.message || 'Failed to create billing account');
     }
@@ -63,6 +94,9 @@ export async function consumeCredits(params: {
     projectId?: string | null;
 }): Promise<{ ok: true; remaining: number } | { ok: false; remaining: number }> {
     const account = await ensureBillingAccount(params.userId);
+    if (account.subscription_status === 'billing_schema_missing') {
+        return { ok: true, remaining: Number.MAX_SAFE_INTEGER };
+    }
 
     if (account.credit_balance < params.amount) {
         return { ok: false, remaining: account.credit_balance };
@@ -100,6 +134,9 @@ export async function grantCredits(params: {
     reason: string;
 }): Promise<void> {
     const account = await ensureBillingAccount(params.userId);
+    if (account.subscription_status === 'billing_schema_missing') {
+        return;
+    }
     const supabaseAdmin = getSupabaseAdmin();
     const nextBalance = account.credit_balance + params.amount;
 
