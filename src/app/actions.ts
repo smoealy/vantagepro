@@ -1,11 +1,12 @@
 "use server";
 
 import { auth } from "@clerk/nextjs/server";
-import { supabaseAdmin } from '@/lib/supabase/admin';
+import { getSupabaseAdmin } from '@/lib/supabase/admin';
 
 export async function createProject(name: string, prompt: string) {
     const { userId, sessionClaims } = await auth();
     if (!userId) throw new Error("Unauthorized");
+    const supabaseAdmin = getSupabaseAdmin();
 
     const trimmedName = name.trim();
     const trimmedPrompt = prompt.trim();
@@ -32,6 +33,7 @@ export async function createProject(name: string, prompt: string) {
 export async function getProjects() {
     const { userId } = await auth();
     if (!userId) return [];
+    const supabaseAdmin = getSupabaseAdmin();
 
     const { data, error } = await supabaseAdmin
         .from('projects')
@@ -49,6 +51,7 @@ export async function getProjects() {
 export async function getProjectData(id: string) {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
+    const supabaseAdmin = getSupabaseAdmin();
 
     // Fetch project metadata
     const { data: project, error: projectError } = await supabaseAdmin

@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
-import { AGENT_PERSONAS, Role } from './roles';
+import { AGENT_PERSONAS, AgentRole, Role } from './roles';
 
 export interface ProjectFile {
     path: string;
@@ -48,7 +48,7 @@ export class SwarmManager {
         this.addLog('Manager', "Swarm mission complete. Final code is ready.");
     }
 
-    private async runAgent(role: Role, prompt: string, provider: 'openai' | 'anthropic' = 'openai') {
+    private async runAgent(role: AgentRole, prompt: string, provider: 'openai' | 'anthropic' = 'openai') {
         const persona = AGENT_PERSONAS[role];
         this.addLog(role, `Thinking with ${provider === 'openai' ? 'GPT-4o' : 'Claude 3.5 Sonnet'}...`);
 

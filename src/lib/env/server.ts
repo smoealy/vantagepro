@@ -6,12 +6,9 @@ const requiredServerEnv = [
 export function getServerEnv() {
   const missing = requiredServerEnv.filter((key) => !process.env[key]);
 
-  if (missing.length > 0) {
-    throw new Error(`Missing required server environment variables: ${missing.join(', ')}`);
-  }
-
   return {
-    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL as string,
-    supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY as string,
+    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    missing,
   };
 }

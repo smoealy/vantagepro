@@ -265,7 +265,7 @@ export default function Dashboard() {
                     {!loading && filtered.length === 0 && projects.length > 0 && (
                         <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '100px 0' }}>
                             <Search size={48} style={{ opacity: 0.1, marginBottom: 20 }} />
-                            <p style={{ color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>No projects matching "{search}"</p>
+                            <p style={{ color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>No projects matching &quot;{search}&quot;</p>
                             <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', color: '#7c3aed', fontWeight: 800, marginTop: 12, cursor: 'pointer' }}>
                                 Clear Search
                             </button>

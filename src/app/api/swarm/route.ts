@@ -1,7 +1,7 @@
 import { openai } from '@ai-sdk/openai';
 import { streamText } from 'ai';
 import { z } from 'zod';
-import { supabaseAdmin } from '@/lib/supabase/admin';
+import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { auth } from '@clerk/nextjs/server';
 
 export const runtime = 'nodejs';
@@ -14,6 +14,8 @@ export async function POST(req: Request) {
             headers: { 'Content-Type': 'application/json' },
         });
     }
+
+    const supabaseAdmin = getSupabaseAdmin();
 
     const body = await req.json();
     const messages = Array.isArray(body?.messages) ? body.messages : [];
