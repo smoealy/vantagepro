@@ -1,0 +1,161 @@
+
+> fusion-exoplanet@0.1.0 dev
+> next dev -p 3001
+
+  ▲ Next.js 13.5.11
+  - Local:        http://localhost:3001
+  - Environments: .env.local
+  - Experiments (use at your own risk):
+     · serverActions
+
+ ✓ Ready in 1544ms
+ ✓ Compiled /src/middleware in 479ms (169 modules)
+ ✓ Compiled /not-found in 1899ms (822 modules)
+
+[43m----------
+Clerk:
+Your current Next.js version (13.5.11) will be deprecated in the next major release of "@clerk/nextjs". Please upgrade to next@14.1.0 or later.
+----------[0m
+
+ ✓ Compiled in 207ms (354 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (206kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled in 291ms (169 modules)
+ ✓ Compiled /api/swarm/route in 591ms (581 modules)
+⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+Supabase Message Error: {
+  code: '23503',
+  details: 'Key (project_id)=(758e1557-0000-0000-0000-000000000000) is not present in table "projects".',
+  hint: null,
+  message: 'insert or update on table "messages" violates foreign key constraint "messages_project_id_fkey"'
+}
+Supabase Message Error: {
+  code: '23503',
+  details: 'Key (project_id)=(758e1557-0000-0000-0000-000000000000) is not present in table "projects".',
+  hint: null,
+  message: 'insert or update on table "messages" violates foreign key constraint "messages_project_id_fkey"'
+}
+Supabase Message Error: {
+  code: '23503',
+  details: 'Key (project_id)=(758e1557-0000-0000-0000-000000000000) is not present in table "projects".',
+  hint: null,
+  message: 'insert or update on table "messages" violates foreign key constraint "messages_project_id_fkey"'
+}
+Supabase File Error: {
+  code: '23503',
+  details: 'Key (project_id)=(758e1557-0000-0000-0000-000000000000) is not present in table "projects".',
+  hint: null,
+  message: 'insert or update on table "files" violates foreign key constraint "files_project_id_fkey"'
+}
+Supabase File Error: {
+  code: '23503',
+  details: 'Key (project_id)=(758e1557-0000-0000-0000-000000000000) is not present in table "projects".',
+  hint: null,
+  message: 'insert or update on table "files" violates foreign key constraint "files_project_id_fkey"'
+}
+Supabase File Error: {
+  code: '23503',
+  details: 'Key (project_id)=(758e1557-0000-0000-0000-000000000000) is not present in table "projects".',
+  hint: null,
+  message: 'insert or update on table "files" violates foreign key constraint "files_project_id_fkey"'
+}
+Supabase Message Error: {
+  code: '23503',
+  details: 'Key (project_id)=(758e1557-0000-0000-0000-000000000000) is not present in table "projects".',
+  hint: null,
+  message: 'insert or update on table "messages" violates foreign key constraint "messages_project_id_fkey"'
+}
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (206kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled in 259ms (352 modules)
+ ✓ Compiled in 883ms (352 modules)
+ ✓ Compiled in 295ms (352 modules)
+ ✓ Compiled in 153ms (352 modules)
+ ✓ Compiled in 122ms (352 modules)
+ ✓ Compiled /not-found in 318ms (808 modules)
+
+[43m----------
+Clerk:
+Your current Next.js version (13.5.11) will be deprecated in the next major release of "@clerk/nextjs". Please upgrade to next@14.1.0 or later.
+----------[0m
+
+ ✓ Compiled /sign-in/[[...sign-in]]/page in 905ms (839 modules)
+
+[43m----------
+Clerk:
+Your current Next.js version (13.5.11) will be deprecated in the next major release of "@clerk/nextjs". Please upgrade to next@14.1.0 or later.
+----------[0m
+
+ ○ Compiling /page ...
+ ✓ Compiled /page in 4.7s (1989 modules)
+
+[43m----------
+Clerk:
+Your current Next.js version (13.5.11) will be deprecated in the next major release of "@clerk/nextjs". Please upgrade to next@14.1.0 or later.
+----------[0m
+
+ ✓ Compiled /favicon.ico/route in 2.9s (1199 modules)
+⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+
+[43m----------
+Clerk:
+Your current Next.js version (13.5.11) will be deprecated in the next major release of "@clerk/nextjs". Please upgrade to next@14.1.0 or later.
+----------[0m
+
+ ✓ Compiled /studio/new/page in 1202ms (2031 modules)
+⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+ ✓ Compiled /not-found in 1375ms (2035 modules)
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+
+[43m----------
+Clerk:
+Your current Next.js version (13.5.11) will be deprecated in the next major release of "@clerk/nextjs". Please upgrade to next@14.1.0 or later.
+----------[0m
+
+⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+ ✓ Compiled /studio/[id]/page in 1370ms (2192 modules)
+⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+ ✓ Compiled /api/swarm/route in 601ms (1397 modules)
+⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+
+[43m----------
+Clerk:
+Your current Next.js version (13.5.11) will be deprecated in the next major release of "@clerk/nextjs". Please upgrade to next@14.1.0 or later.
+----------[0m
+
+⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+ ✓ Compiled in 9.1s (2170 modules)
+ ✓ Compiled in 7.5s (2170 modules)
+
+[43m----------
+Clerk:
+Your current Next.js version (13.5.11) will be deprecated in the next major release of "@clerk/nextjs". Please upgrade to next@14.1.0 or later.
+----------[0m
+
+ ○ Compiling /favicon.ico/route ...
+ ✓ Compiled /favicon.ico/route in 5.7s (1284 modules)
+⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+
+[43m----------
+Clerk:
+Your current Next.js version (13.5.11) will be deprecated in the next major release of "@clerk/nextjs". Please upgrade to next@14.1.0 or later.
+----------[0m
+
+ ⨯ src/app/actions.ts (53:24) @ getProjectData
+ ⨯ Error: Project not found
+    at getProjectData (./src/app/actions.ts:48:25)
+[0m [90m 51 | [39m        [33m.[39msingle()[33m;[39m[0m
+[0m [90m 52 | [39m[0m
+[0m[31m[1m>[22m[39m[90m 53 | [39m    [36mif[39m ([33m![39mproject) [36mthrow[39m [36mnew[39m [33mError[39m([32m"Project not found"[39m)[33m;[39m[0m
+[0m [90m    | [39m                       [31m[1m^[22m[39m[0m
+[0m [90m 54 | [39m[0m
+[0m [90m 55 | [39m    [90m// Fetch files[39m[0m
+[0m [90m 56 | [39m    [36mconst[39m { data[33m:[39m files } [33m=[39m [36mawait[39m supabaseAdmin[0m
+ ⨯ src/app/actions.ts (53:24) @ getProjectData
+ ⨯ Error: Project not found
+    at getProjectData (./src/app/actions.ts:48:25)
+[0m [90m 51 | [39m        [33m.[39msingle()[33m;[39m[0m
+[0m [90m 52 | [39m[0m
+[0m[31m[1m>[22m[39m[90m 53 | [39m    [36mif[39m ([33m![39mproject) [36mthrow[39m [36mnew[39m [33mError[39m([32m"Project not found"[39m)[33m;[39m[0m
+[0m [90m    | [39m                       [31m[1m^[22m[39m[0m
+[0m [90m 54 | [39m[0m
+[0m [90m 55 | [39m    [90m// Fetch files[39m[0m
+[0m [90m 56 | [39m    [36mconst[39m { data[33m:[39m files } [33m=[39m [36mawait[39m supabaseAdmin[0m

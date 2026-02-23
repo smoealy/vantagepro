@@ -1,0 +1,94 @@
+"use client";
+
+import React from 'react';
+import { Zap, ArrowRight, Shield, Cpu, Layout, Sparkles } from 'lucide-react';
+import { SignInButton, useUser } from '@clerk/nextjs';
+import Link from 'next/link';
+
+export default function LandingPage() {
+  const { isSignedIn } = useUser();
+
+  return (
+    <div className="min-h-screen bg-black text-white font-sans overflow-hidden">
+      {/* Ambient Background */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-purple-600/10 blur-[120px] pointer-events-none rounded-full" />
+
+      <nav className="relative z-50 max-w-7xl mx-auto px-6 py-8 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center">
+            <Zap size={24} fill="currentColor" />
+          </div>
+          <span className="text-2xl font-black tracking-tighter">VANTAGE</span>
+        </div>
+
+        <div className="flex items-center gap-8">
+          {isSignedIn ? (
+            <Link href="/dashboard">
+              <button className="bg-white text-black px-6 py-2 rounded-full font-bold hover:bg-white/90 transition-all flex items-center gap-2">
+                Go to Studio <ArrowRight size={16} />
+              </button>
+            </Link>
+          ) : (
+            <SignInButton mode="modal">
+              <button className="text-sm font-bold opacity-60 hover:opacity-100 transition-opacity">
+                Sign In
+              </button>
+            </SignInButton>
+          )}
+        </div>
+      </nav>
+
+      <main className="relative z-10 max-w-7xl mx-auto px-6 pt-32 pb-20">
+        <div className="max-w-3xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-purple-400 mb-8">
+            <Sparkles size={12} />
+            <span>The Next Generation of AI Agents</span>
+          </div>
+          <h1 className="text-7xl md:text-8xl font-black tracking-tighter leading-[0.9] mb-8">
+            BUILD <span className="text-white/40">SaaS</span> <br />
+            IN <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-400">SECONDS.</span>
+          </h1>
+          <p className="text-xl text-white/50 leading-relaxed mb-12 max-w-xl">
+            A multi-agent swarm that architects, designs, and codes your entire product while you watch. Production-ready out of the box.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            {isSignedIn ? (
+              <Link href="/dashboard">
+                <button className="bg-white text-black h-16 px-10 rounded-2xl font-black text-lg hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-white/10">
+                  LAUNCH THE STUDIO
+                </button>
+              </Link>
+            ) : (
+              <SignInButton mode="modal">
+                <button className="bg-white text-black h-16 px-10 rounded-2xl font-black text-lg hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-white/10">
+                  START BUILDING NOW
+                </button>
+              </SignInButton>
+            )}
+            <button className="h-16 px-10 rounded-2xl font-bold text-lg border border-white/10 hover:bg-white/5 transition-all">
+              How it works
+            </button>
+          </div>
+        </div>
+
+        {/* Feature Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-40">
+          {[
+            { icon: <Cpu />, title: "Multi-Model Swarm", desc: "Collaborative agents using GPT-4o and Claude 3.5 Sonnet." },
+            { icon: <Shield />, title: "Production Ready", desc: "Enterprise infrastructure with Supabase and Clerk pre-integrated." },
+            { icon: <Layout />, title: "Premium UI/UX", desc: "Modern, stunning interfaces that wow your customers instantly." }
+          ].map((f, i) => (
+            <div key={i} className="group p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform text-white/60 group-hover:text-purple-400">
+                {f.icon}
+              </div>
+              <h3 className="text-xl font-bold mb-2">{f.title}</h3>
+              <p className="text-white/40 text-sm leading-relaxed">{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </main>
+    </div>
+  );
+}

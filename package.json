@@ -1,0 +1,41 @@
+{
+  "name": "fusion-exoplanet",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^0.0.56",
+    "@ai-sdk/openai": "^0.0.66",
+    "@ai-sdk/react": "^3.0.93",
+    "@anthropic-ai/sdk": "^0.76.0",
+    "@clerk/nextjs": "6.37.5",
+    "@codesandbox/sandpack-react": "^2.20.0",
+    "@supabase/supabase-js": "2.97.0",
+    "ai": "^3.4.33",
+    "autoprefixer": "10.4.24",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.34.2",
+    "lucide-react": "^0.574.0",
+    "next": "13.5.11",
+    "openai": "^4.42.0",
+    "postcss": "8.5.6",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "tailwind-merge": "^3.4.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "14.2.35",
+    "tailwindcss": "3.4.19",
+    "typescript": "^5"
+  }
+}
