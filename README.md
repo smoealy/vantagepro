@@ -59,6 +59,15 @@ curl -s http://localhost:3000/api/health
 
 Credits are enforced in `POST /api/swarm`; each generation request consumes 1 credit.
 
+### Admin unlimited credits
+
+Set one of these optional env vars:
+
+- `ADMIN_USER_IDS` (comma-separated Clerk user IDs)
+- `ADMIN_EMAILS` (comma-separated email addresses)
+
+Matching users bypass credit deductions in `/api/swarm`.
+
 ## Monorepo/tooling notes
 
 - This project uses Next.js App Router.

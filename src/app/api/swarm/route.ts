@@ -4,11 +4,12 @@ import { z } from 'zod';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { auth } from '@clerk/nextjs/server';
 import { consumeCredits, ensureBillingAccount } from '@/lib/billing/service';
+import { isAdminUser } from '@/lib/billing/admin';
 
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
-    const { userId } = await auth();
+    const { userId, sessionClaims } = await auth();
     if (!userId) {
         return new Response(JSON.stringify({ error: 'Unauthorized' }), {
             status: 401,
@@ -44,12 +45,17 @@ export async function POST(req: Request) {
         });
     }
 
-    const creditCheck = await consumeCredits({
-        userId,
-        amount: 1,
-        reason: 'swarm_generation',
-        projectId,
-    });
+    const email = (sessionClaims as any)?.email as string | undefined;
+    const bypassCredits = isAdminUser({ userId, email, sessionClaims });
+
+    const creditCheck = bypassCredits
+        ? { ok: true as const, remaining: Number.MAX_SAFE_INTEGER }
+        : await consumeCredits({
+            userId,
+            amount: 1,
+            reason: 'swarm_generation',
+            projectId,
+        });
 
     if (!creditCheck.ok) {
         return new Response(
