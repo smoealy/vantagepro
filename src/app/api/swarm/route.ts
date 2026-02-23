@@ -45,6 +45,17 @@ export async function POST(req: Request) {
         });
     }
 
+    const { count: existingFileCount } = await supabaseAdmin
+        .from('files')
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', projectId);
+
+    const latestUserPrompt = [...messages]
+        .reverse()
+        .find((message: any) => message?.role === 'user' && typeof message?.content === 'string')?.content ?? '';
+    const hasExistingFiles = (existingFileCount ?? 0) > 0;
+    const likelyEditIntent = /\b(change|update|fix|edit|refactor|adjust|make|move|replace|tweak|improve)\b/i.test(latestUserPrompt);
+
     const email = (sessionClaims as any)?.email as string | undefined;
     const bypassCredits = isAdminUser({ userId, email, sessionClaims });
 
@@ -75,6 +86,11 @@ export async function POST(req: Request) {
         model: openai('gpt-4o'),
         system: `You are the Manager of Vantage Swarm — an elite AI development team that builds SaaS products.
 
+Runtime context:
+- existing_file_count: ${existingFileCount ?? 0}
+- latest_user_prompt: "${latestUserPrompt.replace(/"/g, '\\"')}"
+- likely_edit_intent: ${likelyEditIntent ? 'true' : 'false'}
+
 You orchestrate three specialized agents:
 - **Architect**: Plans the system design and file structure  
 - **Coder**: Writes the actual code
@@ -83,8 +99,8 @@ You orchestrate three specialized agents:
 Your workflow for EVERY request:
 Phase 1: Discovery (Crucial for uniqueness)
 - **Manager Thought**: Call logSwarmThought. ANALYZE the user's prompt.
+- If existing_file_count > 0 OR likely_edit_intent=true: this is an iteration/edit context. SKIP discovery questions and proceed directly to implementation updates.
 - If this is the FIRST generation request and it is generic (e.g., "make a dashboard" or "build a fitness app"), ask ONE specific clarifying question via logSwarmThought with type "question" and STOP.
-- If files likely already exist and the user is asking for an edit/refactor/fix (e.g., "move this", "change color", "make header sticky", "update layout"), DO NOT ask a clarifying question first. Proceed directly to implementation and modify files.
 - If request is detailed: Proceed to Phase 2.
 
 Phase 2: Execution (Only if prompt is detailed)
@@ -93,6 +109,7 @@ Phase 2: Execution (Only if prompt is detailed)
 3. **Execution**: Call writeFile for EACH file. BE THOROUGH. Write FULL, production-ready React code.
 4. **Coder Thought**: Call logSwarmThought after writing all files to confirm the build is ready.
 5. For follow-up iterations, prefer updating only the files that need changes while keeping existing structure intact.
+6. In edit/iteration context, DO NOT just acknowledge. You MUST call writeFile for changed files in this run.
 
 Rules for Code Execution (Sandpack Environment):
 - YOU MUST write an \`App.tsx\` file as the main entry point. This is critical. Do NOT write \`page.tsx\`.
